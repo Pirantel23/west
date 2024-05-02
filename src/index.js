@@ -142,12 +142,10 @@ class Lad extends Dog {
 
     static increaseInGameCount() {
         this.setInGameCount(this.getInGameCount() + 1);
-        console.log(this.getInGameCount());
     }
 
     static decreaseInGameCount() {
         this.setInGameCount(this.getInGameCount() - 1);
-        console.log(this.getInGameCount());
     }
 
     doAfterComingIntoPlay(gameContext, continuation) {
@@ -201,7 +199,6 @@ class Rogue extends Creature {
                 property === 'modifyDealedDamageToPlayer' ||
                 property === 'modifyTakenDamage') {
                     this[property] = prototype[property];
-                    console.log(property);
                     delete prototype[property];
                 }
             });
@@ -250,14 +247,28 @@ class PseudoDuck extends Dog {
     }
 }
 
+class Nemo extends Creature {
+    constructor() {
+        super('Немо', 4);
+    }
+
+    doBeforeAttack(gameContext, continuation) {
+        let oppositeCard = gameContext.oppositePlayer.table[gameContext.position];
+        if (oppositeCard) {
+            Object.setPrototypeOf(this, Object.getPrototypeOf(oppositeCard));
+            gameContext.updateView();
+        }
+        this.doBeforeAttack(gameContext, continuation)
+    }
+}
+
+
 const seriffStartDeck = [
-    new Duck(),
-    new Brewer(),
+    new Nemo(),
 ];
 const banditStartDeck = [
-    new Dog(),
-    new PseudoDuck(),
-    new Dog(),
+    new Brewer(),
+    new Brewer(),
 ];
 
 
