@@ -60,15 +60,68 @@ class Dog extends Creature {
     }
 }
 
+class Trasher extends Dog {
+    constructor() {
+        super();
+        this.name = 'Громила';
+        this.maxPower = 5;
+    }
+
+    modifyTakenDamage(value, fromCard, gameContext, continuation) {
+        this.view.signalAbility(() => {
+            continuation(value - 1);
+        });
+    }
+
+    getDescriptions() {
+        return [
+            'Получает на 1 меньше урона',
+            ...super.getDescriptions()
+        ];
+    }
+
+}
+
+class Gatling extends Creature {
+    constructor() {
+        super('Гатлинг', 6);
+    }
+
+    attack(gameContext, continuation) {
+        const taskQueue = new TaskQueue();
+
+        const oppositeCards = gameContext.oppositePlayer.table;
+        taskQueue.push(onDone => this.view.showAttack(onDone));
+
+        oppositeCards.forEach(oppositeCard => {
+            taskQueue.push(onDone => {
+                this.dealDamageToCreature(2, oppositeCard, gameContext, onDone);
+            });
+        });
+
+        taskQueue.continueWith(continuation);
+    }
+
+    getDescriptions() {
+        return [
+            'При атаке наносит 2 урона каждому противнику',
+            ...super.getDescriptions()
+        ];
+    }
+}
+
 // Колода Шерифа, нижнего игрока.
 const seriffStartDeck = [
     new Duck(),
     new Duck(),
     new Duck(),
+    new Gatling(),
 ];
 
 // Колода Бандита, верхнего игрока.
 const banditStartDeck = [
+    new Trasher(),
+    new Dog(),
     new Dog(),
 ];
 
