@@ -5,7 +5,7 @@ import SpeedRate from './SpeedRate.js';
 
 // Отвечает является ли карта уткой.
 function isDuck(card) {
-    return card instanceof Duck;
+    return card && card.quacks && card.swims;
 }
 
 // Отвечает является ли карта собакой.
@@ -172,12 +172,65 @@ class Lad extends Dog {
     }
 }
 
+
+// «Изгой»
+// От него все бегут, потому что он приходит и отнимает силы...
+
+// Добавь карту `Rogue`:
+// - называется Изгой, сила 2, наследуется от `Creature`.
+// - перед атакой на карту забирает у нее все способности к увеличению наносимого урона или уменьшению получаемого урона.
+//   Одновременно эти способности забираются у всех карт того же типа, но не у других типов карт.
+//   Изгой получает эти способности, но не передает их другим Изгоям.
+
+// Подсказки:
+// - Изгой похищает эти способности: `modifyDealedDamageToCreature`, `modifyDealedDamageToPlayer`, `modifyTakenDamage`
+// - Чтобы похитить способности у всех карт некоторого типа, надо взять их из прототипа
+// - Получить доступ к прототипу некоторой карты можно так: `Object.getPrototypeOf(card)`
+// - Чтобы не похищать способности у других типов, нельзя задевать прототип прототипа
+// - `Object.getOwnPropertyNames` и `obj.hasOwnProperty` позволяют получать только собственные свойства объекта
+// - Удалить свойство из объекта можно с помощью оператора `delete` так: `delete obj[propName]`
+//   Это не то же самое, что `obj[propName] = undefined`
+// - После похищения стоит обновить вид всех объектов игры. `updateView` из `gameContext` поможет это сделать.
+class Rogue extends Creature {
+    constructor() {
+        super('Изгой', 2);
+    }
+
+    doBeforeAttack(gameContext, continuation) {
+        const oppositePlayer = gameContext.oppositePlayer;
+        const oppositeCards = oppositePlayer.table;
+
+        oppositeCards.forEach(card => {
+            if (card instanceof Rogue) {
+                return;
+            }
+
+            const prototype = Object.getPrototypeOf(card);
+
+            Object.getOwnPropertyNames(prototype).forEach(property => {
+                if (property === 'modifyDealedDamageToCreature' ||
+                property === 'modifyDealedDamageToPlayer' ||
+                property === 'modifyTakenDamage') {
+                    this[property] = prototype[property];
+                    console.log(property);
+                    delete prototype[property];
+                }
+            });
+        });
+
+        gameContext.updateView();
+        continuation();
+    }
+}
+
 const seriffStartDeck = [
     new Duck(),
     new Duck(),
     new Duck(),
+    new Rogue(),
 ];
 const banditStartDeck = [
+    new Lad(),
     new Lad(),
     new Lad(),
 ];
