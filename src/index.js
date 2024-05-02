@@ -32,6 +32,14 @@ class Creature extends Card {
         super(name, maxPower, image);
     }
 
+    get currentPower() {
+        return this._currentPower;
+    }
+
+    set currentPower(value) {
+        this._currentPower = Math.min(this.maxPower, value);
+    }
+
     getDescriptions() {
         return [
             getCreatureDescription(this),
@@ -172,25 +180,6 @@ class Lad extends Dog {
     }
 }
 
-
-// «Изгой»
-// От него все бегут, потому что он приходит и отнимает силы...
-
-// Добавь карту `Rogue`:
-// - называется Изгой, сила 2, наследуется от `Creature`.
-// - перед атакой на карту забирает у нее все способности к увеличению наносимого урона или уменьшению получаемого урона.
-//   Одновременно эти способности забираются у всех карт того же типа, но не у других типов карт.
-//   Изгой получает эти способности, но не передает их другим Изгоям.
-
-// Подсказки:
-// - Изгой похищает эти способности: `modifyDealedDamageToCreature`, `modifyDealedDamageToPlayer`, `modifyTakenDamage`
-// - Чтобы похитить способности у всех карт некоторого типа, надо взять их из прототипа
-// - Получить доступ к прототипу некоторой карты можно так: `Object.getPrototypeOf(card)`
-// - Чтобы не похищать способности у других типов, нельзя задевать прототип прототипа
-// - `Object.getOwnPropertyNames` и `obj.hasOwnProperty` позволяют получать только собственные свойства объекта
-// - Удалить свойство из объекта можно с помощью оператора `delete` так: `delete obj[propName]`
-//   Это не то же самое, что `obj[propName] = undefined`
-// - После похищения стоит обновить вид всех объектов игры. `updateView` из `gameContext` поможет это сделать.
 class Rogue extends Creature {
     constructor() {
         super('Изгой', 2);
@@ -223,16 +212,37 @@ class Rogue extends Creature {
     }
 }
 
+class Brewer extends Duck {
+    constructor() {
+        super();
+        this.name = 'Пивовар';
+        this.maxPower = 2;
+    }
+
+    doBeforeAttack(gameContext, continuation) {
+        const cards = gameContext.currentPlayer.table.concat(gameContext.oppositePlayer.table);
+
+        cards.forEach(card => {
+            if (isDuck(card)) {
+                card.maxPower++;
+                card.currentPower += 2;
+                card.view.signalHeal(() => {});
+                card.updateView();
+            }
+        });
+        continuation();
+    }
+}
+
 const seriffStartDeck = [
     new Duck(),
-    new Duck(),
-    new Duck(),
-    new Rogue(),
+    new Brewer(),
 ];
 const banditStartDeck = [
-    new Lad(),
-    new Lad(),
-    new Lad(),
+    new Dog(),
+    new Dog(),
+    new Dog(),
+    new Dog(),
 ];
 
 
