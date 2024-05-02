@@ -84,7 +84,9 @@ class Trasher extends Dog {
 
 class Gatling extends Creature {
     constructor() {
-        super('Гатлинг', 6);
+        super();
+        this.name = 'Гатлинг';
+        this.maxPower = 6;
     }
 
     attack(gameContext, continuation) {
@@ -110,19 +112,74 @@ class Gatling extends Creature {
     }
 }
 
-// Колода Шерифа, нижнего игрока.
+class Lad extends Dog {
+    constructor() {
+        super();
+        this.name = 'Браток';
+        this.maxPower = 2;
+    }
+
+    static getBonus() {
+        const count = this.getInGameCount();
+        return count * (count + 1) / 2;
+    }
+
+    static getInGameCount() {
+        return this.inGameCount || 0;
+    }
+
+    static setInGameCount(value) {
+        this.inGameCount = value;
+    }
+
+    static increaseInGameCount() {
+        this.setInGameCount(this.getInGameCount() + 1);
+        console.log(this.getInGameCount());
+    }
+
+    static decreaseInGameCount() {
+        this.setInGameCount(this.getInGameCount() - 1);
+        console.log(this.getInGameCount());
+    }
+
+    doAfterComingIntoPlay(gameContext, continuation) {
+        Lad.increaseInGameCount();
+        continuation();
+    }
+
+    doBeforeRemoving(continuation) {
+        Lad.decreaseInGameCount();
+        continuation();
+    }
+
+    modifyDealedDamageToCreature(value, toCard, gameContext, continuation) {
+        continuation(value + Lad.getBonus());
+    }
+
+    modifyTakenDamage(value, fromCard, gameContext, continuation) {
+        continuation(Math.max(value - Lad.getBonus(), 0));
+    }
+
+    getDescriptions() {
+        if (Lad.prototype.hasOwnProperty('modifyDealedDamageToCreature') ||
+            Lad.prototype.hasOwnProperty('modifyTakenDamage')) {
+            return [
+                'Чем их больше, тем они сильнее',
+                ...super.getDescriptions()
+            ];
+        }
+        return super.getDescriptions();
+    }
+}
+
 const seriffStartDeck = [
     new Duck(),
     new Duck(),
     new Duck(),
-    new Gatling(),
 ];
-
-// Колода Бандита, верхнего игрока.
 const banditStartDeck = [
-    new Trasher(),
-    new Dog(),
-    new Dog(),
+    new Lad(),
+    new Lad(),
 ];
 
 
