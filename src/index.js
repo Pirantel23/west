@@ -234,14 +234,29 @@ class Brewer extends Duck {
     }
 }
 
+class PseudoDuck extends Dog {
+    constructor() {
+        super();
+        this.name = 'Псевдоутка';
+        this.maxPower = 3;
+    }
+
+    quacks() {
+        console.log('quack');
+    }
+
+    swims() {
+        console.log('float: both;');
+    }
+}
+
 const seriffStartDeck = [
     new Duck(),
     new Brewer(),
 ];
 const banditStartDeck = [
     new Dog(),
-    new Dog(),
-    new Dog(),
+    new PseudoDuck(),
     new Dog(),
 ];
 
